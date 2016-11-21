@@ -1,23 +1,17 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "queue.h"
+
 typedef struct HttpRequest_ {
-	char *type;
-	char *resource;
-	char *version;
+	char* type;
+	char* resource;
+	char* version;
+    Queue* attr_list;
 } HttpRequest;
 
-/* Funcao getRequestList()
-* Retorna o ponteiro para a lista de requisicoes
-*/
-HttpRequest *httpParser_getRequestList();
+void create_request();
 
-/* printRequestList()
-* Imprime todas informacoes de uma lista de requisicoes
-*
-* Parametros:
-* HttpRequest *requestList: ponteiro para um lista de requisicoes
-*/
-void httpParser_printRequestList(HttpRequest *requestList);
+HttpRequest parse_request();
 
 #endif

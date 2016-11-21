@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_PARSER_TAB_H_INCLUDED
-# define YY_YY_PARSER_TAB_H_INCLUDED
+#ifndef YY_YY_HTTP_TAB_H_INCLUDED
+# define YY_YY_HTTP_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -45,16 +45,16 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    NL = 258,
-    CR = 259,
-    COMMA = 260,
-    END = 261,
-    SLASH = 262,
-    BLANK = 263,
-    GET = 264,
-    VERSION11 = 265,
-    HOST = 266,
-    CHARACTER = 267
+    COMANDO = 258,
+    PARAMETRO = 259,
+    VIRGULA = 260,
+    DOISPONTOS = 261,
+    NOVALINHA = 262,
+    HOST = 263,
+    ESPACO = 264,
+    FIM = 265,
+    CHAVE = 266,
+    LITERAL = 267
   };
 #endif
 
@@ -63,11 +63,11 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 25 "parser.y" /* yacc.c:1909  */
+#line 36 "http.y" /* yacc.c:1909  */
 
-char text; 
+  char text[1024];
 
-#line 71 "parser.tab.h" /* yacc.c:1909  */
+#line 71 "http.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -80,4 +80,4 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
+#endif /* !YY_YY_HTTP_TAB_H_INCLUDED  */

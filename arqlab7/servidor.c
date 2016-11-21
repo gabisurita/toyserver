@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "parser.h"
-#include "parser.tab.h"
+#include "http.tab.h"
 
 extern FILE* yyin;
 
@@ -266,12 +266,14 @@ main(int argc, char **argv)
 
 	log = fopen(argv[4], "a");
 
+	create_request();
+
 	// call parser
 	if(!yyparse())
 	{
-		requestList = httpParser_getRequestList();
-		httpServer_answerRequest(requestList, request, response);
-		httpParser_printRequestList(requestList);
+        HttpRequest http_request = parse_request();
+		requestList = &http_request;
+        httpServer_answerRequest(requestList, request, response);
 	}
 	//else ERROR
 

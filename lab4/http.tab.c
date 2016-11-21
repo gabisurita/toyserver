@@ -62,31 +62,44 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "parser.y" /* yacc.c:339  */
+#line 1 "http.y" /* yacc.c:339  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include "parser.h"
+#include <string.h>
+#include "queue.h"
 
-static HttpRequest *requestList;
-static char *pch2;
-static char tmpValue[1024];
-static int tmpIndex = 0;
+/* Tipo comando */
+typedef struct comando{
+  char* texto;
+  Queue* filaParam;
+} comando;
 
-extern char *yytext;
+char* req  = NULL;
+char* path = NULL;
+char* protocolo = NULL;
+char* host = NULL;
+int   porta = 80;
 
-/*int main(int argc, char *argv[]) {
-	if(!yyparse())
-	{
-		requestList = httpParser_getRequestList();
-		httpParser_printRequestList(requestList);
-	}
-	return 0;
-}*/
+/* Fila de comandos */
+Queue* filaComandos;
+
+/* Comando atual para insercao de parametros */
+comando* comandoAtual;
+
+/* Contador de Linha */
+int nlinhas = 1;
+
+/* Remove ocorrencias de caracter em string */
+void clearString(char* input, char rem);
+
+void saveValue();
+
+char buffer[1024];
+char* buffer_entry = buffer;
 
 
-#line 90 "parser.tab.c" /* yacc.c:339  */
+#line 103 "http.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -105,9 +118,9 @@ extern char *yytext;
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "parser.tab.h".  */
-#ifndef YY_YY_PARSER_TAB_H_INCLUDED
-# define YY_YY_PARSER_TAB_H_INCLUDED
+   by #include "http.tab.h".  */
+#ifndef YY_YY_HTTP_TAB_H_INCLUDED
+# define YY_YY_HTTP_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -121,16 +134,16 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    NL = 258,
-    CR = 259,
-    COMMA = 260,
-    END = 261,
-    SLASH = 262,
-    BLANK = 263,
-    GET = 264,
-    VERSION11 = 265,
-    HOST = 266,
-    CHARACTER = 267
+    COMANDO = 258,
+    PARAMETRO = 259,
+    VIRGULA = 260,
+    DOISPONTOS = 261,
+    NOVALINHA = 262,
+    HOST = 263,
+    ESPACO = 264,
+    FIM = 265,
+    CHAVE = 266,
+    LITERAL = 267
   };
 #endif
 
@@ -139,11 +152,11 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 25 "parser.y" /* yacc.c:355  */
+#line 38 "http.y" /* yacc.c:355  */
 
-char text; 
+  char text[1024];
 
-#line 147 "parser.tab.c" /* yacc.c:355  */
+#line 160 "http.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -156,11 +169,11 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
+#endif /* !YY_YY_HTTP_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 164 "parser.tab.c" /* yacc.c:358  */
+#line 177 "http.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -402,16 +415,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   19
+#define YYLAST   14
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  13
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  14
+#define YYNNTS  11
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  25
+#define YYNRULES  18
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  32
+#define YYNSTATES  26
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -458,9 +471,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    39,    41,    46,    48,    49,    50,    53,
-      55,    56,    59,    61,    62,    65,    68,    71,    72,    75,
-      76,    77,    78,    79,    80,    81
+       0,    54,    54,    56,    57,    61,    61,    77,    78,    82,
+      83,    87,    91,    94,    98,   105,   112,   119,   105
 };
 #endif
 
@@ -469,11 +481,10 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "NL", "CR", "COMMA", "END", "SLASH",
-  "BLANK", "GET", "VERSION11", "HOST", "CHARACTER", "$accept",
-  "http_message", "request", "reqtype", "resource", "chars", "slash",
-  "char", "version", "parameters", "parameter", "partype", "fields",
-  "field", YY_NULLPTR
+  "$end", "error", "$undefined", "COMANDO", "PARAMETRO", "VIRGULA",
+  "DOISPONTOS", "NOVALINHA", "HOST", "ESPACO", "FIM", "CHAVE", "LITERAL",
+  "$accept", "prog", "atributos", "atributo", "$@1", "valores", "valor",
+  "requisicao", "$@2", "$@3", "$@4", YY_NULLPTR
 };
 #endif
 
@@ -487,10 +498,10 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -4
+#define YYPACT_NINF -5
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-4)))
+  (!!((Yystate) == (-5)))
 
 #define YYTABLE_NINF -1
 
@@ -501,10 +512,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       1,    -4,    13,    -4,     7,    -4,     4,    -4,     6,    -4,
-      -4,    -4,    -1,    -4,    14,    -3,    -4,    -4,    -4,     0,
-      -4,    16,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,
-      -4,    -4
+      -2,    -5,     4,    -5,     0,    -5,    -1,     3,    -5,    -5,
+      -5,     2,     5,    -5,     8,    -4,    -5,    -5,    -5,    -5,
+      -5,    -5,    -5,    -5,     6,    -5
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -512,24 +522,23 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     4,     0,    13,     0,     1,     2,     6,     0,    16,
-      14,    17,     5,    12,     0,    15,     9,    11,    10,     0,
-       7,     0,    23,    24,    22,    25,    20,    21,    19,    18,
-       8,     3
+       0,    15,     0,     3,     0,     1,     2,     0,     5,     4,
+      16,     0,     0,     7,     0,     6,    17,    10,    13,    14,
+      11,     9,    12,     8,     0,    18
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -4,    -4,    -4,    -4,    -4,    -4,    -4,    -2,    -4,    -4,
-      -4,    -4,    -4,    -4
+      -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,
+      -5
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     3,     4,     8,    12,    19,    20,    14,     6,
-      10,    11,    15,    29
+      -1,     2,     6,     9,    11,    15,    23,     3,     4,    12,
+      24
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -537,40 +546,37 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      22,    23,    24,    25,    26,    27,    16,    17,    17,    28,
-       1,    18,    18,     5,     7,     9,    13,    30,    21,    31
+      17,    18,     1,    19,     5,    20,    21,    10,    22,     7,
+       8,    13,    16,    25,    14
 };
 
 static const yytype_uint8 yycheck[] =
 {
-       3,     4,     5,     6,     7,     8,     7,     8,     8,    12,
-       9,    12,    12,     0,     7,    11,    10,    19,     4,     3
+       4,     5,     4,     7,     0,     9,    10,     4,    12,     9,
+      11,     9,     4,     7,     9
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     9,    14,    15,    16,     0,    22,     7,    17,    11,
-      23,    24,    18,    10,    21,    25,     7,     8,    12,    19,
-      20,     4,     3,     4,     5,     6,     7,     8,    12,    26,
-      20,     3
+       0,     4,    14,    20,    21,     0,    15,     9,    11,    16,
+       4,    17,    22,     9,     9,    18,     4,     4,     5,     7,
+       9,    10,    12,    19,    23,     7
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    13,    14,    15,    16,    17,    18,    18,    18,    19,
-      20,    20,    21,    22,    22,    23,    24,    25,    25,    26,
-      26,    26,    26,    26,    26,    26
+       0,    13,    14,    15,    15,    17,    16,    18,    18,    19,
+      19,    19,    19,    19,    19,    21,    22,    23,    20
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     2,     5,     1,     2,     0,     2,     3,     1,
-       1,     1,     1,     0,     2,     2,     1,     0,     2,     1,
-       1,     1,     1,     1,     1,     1
+       0,     2,     2,     0,     2,     0,     4,     0,     2,     1,
+       1,     1,     1,     1,     1,     0,     0,     0,     9
 };
 
 
@@ -1246,89 +1252,99 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 4:
-#line 41 "parser.y" /* yacc.c:1646  */
-    { 
-				requestList = (HttpRequest *)malloc(sizeof(HttpRequest));
- 				requestList->type = strdup("GET");}
-#line 1255 "parser.tab.c" /* yacc.c:1646  */
-    break;
+        case 5:
+#line 61 "http.y" /* yacc.c:1646  */
+    {
+        /* Cria novo comando */
+        comandoAtual = (comando*)malloc(sizeof(comando));
+        char* texto = (char*)malloc(sizeof(char)*strlen(yylval.text));
+        strcpy(texto, yylval.text);
+        clearString(texto, ':');
+        comandoAtual->texto = texto;
+        comandoAtual->filaParam = newQueue();
 
-  case 9:
-#line 53 "parser.y" /* yacc.c:1646  */
-    {tmpValue[tmpIndex++] = '/';}
-#line 1261 "parser.tab.c" /* yacc.c:1646  */
+        /* Insere comando na fila */
+        inQueue(&filaComandos, (char*)comandoAtual);
+    }
+#line 1270 "http.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 55 "parser.y" /* yacc.c:1646  */
-    {tmpValue[tmpIndex++] = yyval.text;}
-#line 1267 "parser.tab.c" /* yacc.c:1646  */
+#line 83 "http.y" /* yacc.c:1646  */
+    {
+        strcat(buffer, yylval.text);
+    }
+#line 1278 "http.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 56 "parser.y" /* yacc.c:1646  */
-    {finish_resource(); 
-		requestList->resource = pch2;}
-#line 1274 "parser.tab.c" /* yacc.c:1646  */
+#line 87 "http.y" /* yacc.c:1646  */
+    {
+        strcat(buffer, yylval.text);
+    }
+#line 1286 "http.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 59 "parser.y" /* yacc.c:1646  */
-    {requestList->version = strdup("1.1");}
-#line 1280 "parser.tab.c" /* yacc.c:1646  */
+#line 91 "http.y" /* yacc.c:1646  */
+    {
+        strcat(buffer, yylval.text);
+    }
+#line 1294 "http.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 13:
+#line 94 "http.y" /* yacc.c:1646  */
+    {
+        saveValue();
+        buffer[0] = '\0';
+    }
+#line 1303 "http.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 98 "http.y" /* yacc.c:1646  */
+    {
+        saveValue();
+        buffer[0] = '\0';
+    }
+#line 1312 "http.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 105 "http.y" /* yacc.c:1646  */
+    {
+        char* texto = yylval.text;
+        req =  (char*)malloc(sizeof(char)*strlen(texto));
+        strcpy(req, texto);
+
+    }
+#line 1323 "http.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 68 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1286 "parser.tab.c" /* yacc.c:1646  */
+#line 112 "http.y" /* yacc.c:1646  */
+    {
+        char* texto = yylval.text;
+        path = (char*)malloc(sizeof(char)*strlen(texto));
+        strcpy(path, texto);
+
+    }
+#line 1334 "http.tab.c" /* yacc.c:1646  */
     break;
 
-  case 19:
-#line 75 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1292 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 20:
-#line 76 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1298 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 21:
-#line 77 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1304 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 22:
-#line 78 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1310 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 23:
-#line 79 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1316 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 24:
-#line 80 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1322 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 25:
-#line 81 "parser.y" /* yacc.c:1646  */
-    {}
-#line 1328 "parser.tab.c" /* yacc.c:1646  */
+  case 17:
+#line 119 "http.y" /* yacc.c:1646  */
+    {
+        char* texto = yylval.text;
+        protocolo = (char*)malloc(sizeof(char)*strlen(texto));
+        strcpy(protocolo, texto);
+    }
+#line 1344 "http.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1332 "parser.tab.c" /* yacc.c:1646  */
+#line 1348 "http.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1556,54 +1572,82 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 85 "parser.y" /* yacc.c:1906  */
-	
-	
-/* Funcao finish_resource()
-* Auxilia na criacao de um novo recurso. Ao determinar todo o recurso que sera usado 
-* pela requisicao, adiciona uma barra no inicio do mesmo e guarda uma referencia em 
+#line 128 "http.y" /* yacc.c:1906  */
 
-* um ponteiro auxiliar. 
-*/ 
-finish_resource() 				
-{ 				
-	int i,j=0; 				
-	char *temp; 				
-							
-	temp = (char *) strdup(tmpValue);
-				
-	for(i = 0; i < tmpIndex; i++) tmpValue[i + 1] = temp[j++];
-	tmpValue[0] = '/';
-	tmpValue[tmpIndex+1] = '\0';
-	tmpIndex = 0;
-				
-	pch2 = strdup(tmpValue);
-								
-	free(temp); 							
+
+
+int main(){
+
+  filaComandos = newQueue();
+  yyparse();
+
+  printf("Requisição: %s\n", req);
+  printf("Local: %s\n", path);
+  printf("Protocolo: %s\n", protocolo);
+  printf("Porta: %d\n", porta);
+
+
+  /* Imprime conteudo da lista */
+  while(notNullQueue(&filaComandos)){
+
+    comando* iter = (comando*)outQueue(&filaComandos);
+
+    char* texto = iter->texto;
+    printf("%s: ", texto);
+    free(texto);
+
+    Queue* params = iter->filaParam;
+
+    while(notNullQueue(&params)){
+      char* texto = outQueue(&params);
+      printf("%s, ", texto);
+      free(texto);
+    }
+
+    destroyQueue(&params);
+    free(iter);
+    printf("\n");
+  }
+
+  destroyQueue(&filaComandos);
+
+  free(req);
+  free(path);
+  free(protocolo);
+  free(host);
 }
 
-/* printRequestList()
-* Imprime todas informacoes de uma lista de requisicoes 
-* 
-* Parametros: 
-*  HttpRequest *requestList: ponteiro para um lista de requisicoes 
-*/ 
+void saveValue(){
+    /* Verifica se o comando atual e valido */
+    if(comandoAtual){
+        /* Cria novo parametro */
+        char* texto = (char*)malloc(sizeof(char)*strlen(buffer));
+        strcpy(texto, buffer);
 
-void  httpParser_printRequestList(HttpRequest *requestList) 
-{ 
-	HttpRequest *req; 
-	req = requestList; 
+        /* Insere parametro na fila */
+        Queue* parametros = comandoAtual->filaParam;
+        inQueue(&parametros, texto);
+    }
+    /* Caso: parametro em comando invalido */
+    else{
+        printf("Comando inválido na linha %d\n", nlinhas);
+    }
+}
 
-	printf("Request: %s\n", req->type); 
-	printf("Resource: %s\n", req->resource); 
-	printf("Version: %s\n", req->version); 
-} 				
+/* Remove ocorrencias de caracter em string
+    Adaptado de http://stackoverflow.com/questions/4161822/ */
+void clearString(char* input, char rem){
 
-/* Funcao getRequestList()
-* Retorna o ponteiro para a lista de requisicoes 
-*/ 
+  char *src, *dest;
+  src = dest = input;
 
-HttpRequest* httpParser_getRequestList() 
-{ 
-	return requestList; 
-} 
+  while(*src != '\0'){
+      if(*src != rem){
+          *dest = *src;
+          dest++;
+      }
+      src++;
+  }
+  *dest = '\0';
+}
+
