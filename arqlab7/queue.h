@@ -17,7 +17,7 @@ typedef struct node {
 /* Define um tipo fila */
 typedef struct queue {
   Node* start;
-  Node* end;  
+  Node* end;
 } Queue;
 
 
@@ -25,20 +25,20 @@ typedef struct queue {
 void* smalloc(int Size);
 
 /* Cria uma fila */
-Queue* newQueue();
-  
+Queue* new_queue();
+
 /* Insere elemento na entrada da fila */
-void inQueue(Queue** Qe, char* val);
+void in_queue(Queue** Qe, char* val);
 
 /* Retira elemento da saida da fila */
-char* outQueue(Queue** Queue);
+char* out_queue(Queue** Queue);
 
 /* Verifica se a lista possui elementos */
-int notNullQueue(Queue** Qe);
+int not_null_queue(Queue** Qe);
 
 /* Libera fila da memoria. */
-void destroyQueue(Queue** Qe);
+void destroy_queue(Queue** Qe);
 
 /* Cria um tipo no com valor arbitrario */
-Node* newNode(char* val);
+Node* new_node(char* val);
 

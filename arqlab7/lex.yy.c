@@ -500,9 +500,9 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "http.l"
-#line 2 "http.l"
-  #include "http.tab.h"
+#line 1 "http_parser.l"
+#line 2 "http_parser.l"
+  #include "http_parser.tab.h"
 #line 507 "lex.yy.c"
 
 #define INITIAL 0
@@ -721,7 +721,7 @@ YY_DECL
 		}
 
 	{
-#line 5 "http.l"
+#line 5 "http_parser.l"
 
 
 #line 728 "lex.yy.c"
@@ -784,72 +784,72 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 7 "http.l"
+#line 7 "http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 8 "http.l"
+#line 8 "http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 9 "http.l"
+#line 9 "http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 10 "http.l"
+#line 10 "http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 11 "http.l"
+#line 11 "http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 12 "http.l"
+#line 12 "http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 13 "http.l"
+#line 13 "http_parser.l"
 {return VIRGULA;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 14 "http.l"
+#line 14 "http_parser.l"
 {strcpy(yylval.text, yytext); return ESPACO;}
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 15 "http.l"
+#line 15 "http_parser.l"
 {strcpy(yylval.text, yytext); return LITERAL;}
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 16 "http.l"
+#line 16 "http_parser.l"
 {strcpy(yylval.text, yytext); return LITERAL;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 17 "http.l"
+#line 17 "http_parser.l"
 {strcpy(yylval.text, yytext); return CHAVE;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 18 "http.l"
+#line 18 "http_parser.l"
 {strcpy(yylval.text, yytext); return PARAMETRO;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 19 "http.l"
+#line 19 "http_parser.l"
 ECHO;
 	YY_BREAK
 #line 856 "lex.yy.c"
@@ -1853,7 +1853,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 19 "http.l"
+#line 19 "http_parser.l"
 
 
 

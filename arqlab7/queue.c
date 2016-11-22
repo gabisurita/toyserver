@@ -3,7 +3,7 @@ Programa: queue.c
 Autora: Gabriela Surita (RA:139095)
 Data: 07/07/2015
 
-Descricao: Implementa um tipo abstrado de dados fila utilizando 
+Descricao: Implementa um tipo abstrado de dados fila utilizando
 listas ligadas circulares.
 
 ********************************************************************/
@@ -15,19 +15,19 @@ listas ligadas circulares.
 
 /* Malloc com verificacao */
 void* smalloc(int size){
-  
+
   void* mem = malloc(size);
   if(mem == NULL){
     printf("Malloc Error\n");
     exit(1);
   }
-  
+
   return mem;
 }
 
 
 /* Cria um tipo no com valor arbitrario */
-Node* newNode(char* val){
+Node* new_node(char* val){
 
   Node* New = (Node*)smalloc(sizeof(Node));
   New->val = val;
@@ -36,23 +36,8 @@ Node* newNode(char* val){
 }
 
 
-/* Libera (no a no) uma lista da memoria. */
-void destroyList(Node** Root){
-
-  Node* Next;
-  Node* Iter = *Root;
-
-  
-  while(Iter != NULL){
-    Next = Iter->next;
-    free(Iter);
-    Iter = Next;
-  }
-}
-
-
 /* Cria umq fila */
-Queue* newQueue(){
+Queue* new_queue(){
 
   Queue* Qe = smalloc(sizeof(Queue));
   Qe->start = NULL;
@@ -63,12 +48,12 @@ Queue* newQueue(){
 
 
 /* Insere elemento na entrada da fila */
-void inQueue(Queue** Qe, char* val){  
-  
+void in_queue(Queue** Qe, char* val){
+
   Queue* Iter = *Qe;
-  
-  Node* New = newNode(val);  
-  
+
+  Node* New = new_node(val);
+
   if(Iter->end){
     New->next = Iter->start;
     Iter->end->next = New;
@@ -83,7 +68,7 @@ void inQueue(Queue** Qe, char* val){
 
 
 /* Retira elemento da saida da fila */
-char* outQueue(Queue** Qe){
+char* out_queue(Queue** Qe){
 
   Node* OutNode;
   char* OutValue;
@@ -92,34 +77,34 @@ char* outQueue(Queue** Qe){
   OutNode = Iter->start;
 
   if(Iter->end != Iter->start){
-    Iter->start = Iter->start->next;    
+    Iter->start = Iter->start->next;
   }
   else{
     Iter->start = NULL;
     Iter->end = NULL;
   }
-  
+
   OutValue = OutNode->val;
-  
+
   free(OutNode);
-  
-  return OutValue;  
+
+  return OutValue;
 }
 
 
 /* Verifica se a lista possui elementos */
-int notNullQueue(Queue** Qe){
+int not_null_queue(Queue** Qe){
   return (*Qe)->end != NULL;
 }
 
 
 /* Libera fila da memoria. */
-void destroyQueue(Queue** Qe){
-  
-  while(notNullQueue(Qe)){
-    outQueue(Qe);
+void destroy_queue(Queue** Qe){
+
+  while(not_null_queue(Qe)){
+    out_queue(Qe);
   }
-  
+
   free(*Qe);
 }
 

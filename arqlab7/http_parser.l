@@ -1,5 +1,5 @@
 %{
-  #include "http.tab.h"
+  #include "http_parser.tab.h"
 %}
 
 %%

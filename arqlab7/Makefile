@@ -37,15 +37,23 @@ $(INSTALL_STAMP): $(PYTHON) setup.py
 	touch $(INSTALL_STAMP)
 
 build:
-	flex http.l
-	bison -d http.y
-	gcc -o servidor queue.c http.tab.c lex.yy.c servidor.c -lfl -ly
+	flex http_parser.l
+	bison -d http_parser.y
+	gcc -o servidor queue.c http_parser.tab.c lex.yy.c servidor.c -lfl -ly
 
 test-once: build
 	./servidor ../meu-webspace ../req/req_1.txt ../resp/resp_1.txt ../registro.txt
 	cat ../resp/resp_1.txt
 	./servidor ../meu-webspace ../req/req_2.txt ../resp/resp_2.txt ../registro.txt
 	cat ../resp/resp_2.txt
+
+test-some: build
+	./servidor ../meu-webspace ../req/req_1.txt ../resp/resp_1.txt ../registro.txt
+	cat ../resp/resp_1.txt
+	./servidor ../meu-webspace ../req/req_2.txt ../resp/resp_2.txt ../registro.txt
+	cat ../resp/resp_2.txt
+	./servidor ../meu-webspace ../req/req_3.txt ../resp/resp_3.txt ../registro.txt
+	cat ../resp/resp_3.txt
 
 install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
 $(DEV_STAMP): $(PYTHON) requirements-dev.txt

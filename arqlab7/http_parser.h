@@ -14,4 +14,8 @@ void create_request();
 
 HttpRequest parse_request();
 
+Queue* get_field(HttpRequest* request, char* field);
+
+int get_status();
+
 #endif

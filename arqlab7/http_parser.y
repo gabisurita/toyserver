@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.h"
+#include "http_parser.h"
 
 /* Tipo comando */
 typedef struct comando{
@@ -21,15 +21,15 @@ Queue* filaComandos;
 comando* comandoAtual;
 
 /* Contador de Linha */
-int nlinhas = 1;
+int __nlinhas = 1;
 
 /* Remove ocorrencias de caracter em string */
-void clearString(char* input, char rem);
+void __clear_string(char* input, char rem);
 
-void saveValue();
 
-char buffer[1024];
-char* buffer_entry = buffer;
+void __save_value();
+char __buffer[1024];
+int __status = 0;
 
 %}
 
@@ -61,12 +61,12 @@ atributo:
         comandoAtual = (comando*)malloc(sizeof(comando));
         char* texto = (char*)malloc(sizeof(char)*strlen(yylval.text));
         strcpy(texto, yylval.text);
-        clearString(texto, ':');
+        __clear_string(texto, ':');
         comandoAtual->texto = texto;
-        comandoAtual->filaParam = newQueue();
+        comandoAtual->filaParam = new_queue();
 
         /* Insere comando na fila */
-        inQueue(&filaComandos, (char*)comandoAtual);
+        in_queue(&filaComandos, (char*)comandoAtual);
     }
     ESPACO
     valores
@@ -79,23 +79,23 @@ valores:
 valor:
     FIM
     | PARAMETRO{
-        strcat(buffer, yylval.text);
+        strcat(__buffer, yylval.text);
     }
 
     | ESPACO{
-        strcat(buffer, yylval.text);
+        strcat(__buffer, yylval.text);
     }
 
     | LITERAL{
-        strcat(buffer, yylval.text);
+        strcat(__buffer, yylval.text);
     }
     | VIRGULA{
-        saveValue();
-        buffer[0] = '\0';
+        __save_value();
+        __buffer[0] = '\0';
     }
     | NOVALINHA{
-        saveValue();
-        buffer[0] = '\0';
+        __save_value();
+        __buffer[0] = '\0';
     }
 
 
@@ -126,7 +126,7 @@ requisicao:
 %%
 
 void create_request(){
-    filaComandos = newQueue();
+    filaComandos = new_queue();
 }
 
 HttpRequest parse_request(){
@@ -139,26 +139,45 @@ HttpRequest parse_request(){
     return request;
 }
 
-void saveValue(){
+int get_status(){
+    return __status;
+}
+
+Queue* get_field(HttpRequest* request, char* field){
+
+    Node* head = request->attr_list->start;
+
+    for(Node* iter = head; iter->next != head; iter = iter->next){
+        comando* cmd = (comando*)iter->val;
+
+        if(!strcmp(cmd->texto, field))
+            return cmd->filaParam;
+    }
+    return NULL;
+}
+
+
+void __save_value(){
     /* Verifica se o comando atual e valido */
     if(comandoAtual){
         /* Cria novo parametro */
-        char* texto = (char*)malloc(sizeof(char)*strlen(buffer));
-        strcpy(texto, buffer);
+        char* texto = (char*)malloc(sizeof(char)*strlen(__buffer));
+        strcpy(texto, __buffer);
 
         /* Insere parametro na fila */
         Queue* parametros = comandoAtual->filaParam;
-        inQueue(&parametros, texto);
+        in_queue(&parametros, texto);
     }
     /* Caso: parametro em comando invalido */
     else{
-        printf("Comando inválido na linha %d\n", nlinhas);
+        __status = 400;
     }
 }
 
+
 /* Remove ocorrencias de caracter em string
     Adaptado de http://stackoverflow.com/questions/4161822/ */
-void clearString(char* input, char rem){
+void __clear_string(char* input, char rem){
 
   char *src, *dest;
   src = dest = input;

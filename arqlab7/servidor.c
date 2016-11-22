@@ -9,7 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "parser.h"
+#include "http_parser.h"
 #include "http.tab.h"
 
 extern FILE* yyin;
@@ -19,11 +19,13 @@ static char serverRoot[256];
 #define PATH_OFFSET 20
 
 #define OK	200
-#define NOT_FOUND 404
+#define BAD_REQUEST 400
 #define FORBIDDEN 403
+#define NOT_FOUND 404
 #define SERVER_ERROR 500
+#define METHOD_NOT_IMPLEMENTED 501
 
-static char resourcePath[256];
+static char __resource_path[256];
 
 /* Function setServerRoot()
 * Sets the server's root directory
@@ -59,11 +61,29 @@ void buildResponse(HttpRequest *requestList, char *request,
 		case OK:
 			fprintf(responseFile, "OK\r\n");
 			break;
-		//NOT_FOUND,FORBIDDEN,ETC
+		case BAD_REQUEST:
+			fprintf(responseFile, "Bad Request\r\n");
+			break;
+		case FORBIDDEN:
+			fprintf(responseFile, "Forbidden\r\n");
+			break;
+		case NOT_FOUND:
+			fprintf(responseFile, "Not Found\r\n");
+			break;
+		case METHOD_NOT_IMPLEMENTED:
+			fprintf(responseFile, "Method Not Implemented\r\n");
+			break;
 	}
 
-	//XXX: print connection type using requestList, this is only an example
-	fprintf(responseFile, "Connection: keep-alive\r\n");
+	// Get connection fiels
+    Queue* values = get_field(requestList, "Connection");
+    // If "Connection" is not available, close is used by default
+    char* conn = "close";
+    // Last defined value is used by default
+    if(values){
+        conn = out_queue(&values);
+    }
+    fprintf(responseFile, "Connection: %s\r\n", conn);
 
     // Print local time (in GMT)
     char time_dump[64];
@@ -80,30 +100,60 @@ void buildResponse(HttpRequest *requestList, char *request,
 		fprintf(responseFile, "Content-Type: text/html\r\n");
 
 		struct stat statbuff;
-		stat(resourcePath, &statbuff);
+		stat(__resource_path, &statbuff);
 		fprintf(responseFile, "Content-Length: %d\r\n", (int)statbuff.st_size);
 
 	    if(responseCode == OK){
-			// this is only an example, date from "resourcePath"
-			//fprintf(responseFile, "Last-Modified: Sat, 18 Oct 2014 18:40:44 BRT\r\n");
-			// print last modified date from "resourcePath"
+			// print last modified date from "__resource_path"
             struct tm tm = *gmtime(&statbuff.st_ctime);
             strftime(time_dump, sizeof(time_dump), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 			fprintf(responseFile, "Last-Modified: %s\r\n", time_dump);
-			//case NOT_FOUND,FORBIDDEN, etc
+
+            // Finish header
+            fprintf(responseFile, "\r\n");
+
+            // Output content
+		    int fid;
+		    fid = open(__resource_path, O_RDONLY);
+		    read(fid, __resource_path, statbuff.st_size);
+		    fwrite(__resource_path, sizeof(char), statbuff.st_size, responseFile);
+		    close(fid);
 		}
 
-        // Finish header
-        fprintf(responseFile, "\r\n");
-
-        // Output content
-		int fid;
-		fid = open(resourcePath, O_RDONLY);
-		read(fid, resourcePath, statbuff.st_size);
-		fwrite(resourcePath, sizeof(char), statbuff.st_size, responseFile);
-		close(fid);
+	    if(responseCode == NOT_FOUND || responseCode == FORBIDDEN
+                                     || responseCode == BAD_REQUEST
+                                     || responseCode == METHOD_NOT_IMPLEMENTED){
+            // Finish header
+            fprintf(responseFile, "\r\n");
+		}
+	    //case NOT_FOUND,FORBIDDEN, etc
 	}
-	//else -> HEAD, ETC
+
+	if (request=="HEAD")
+	{
+        //XXX: We print only HTML
+		fprintf(responseFile, "Content-Type: text/html\r\n");
+
+		struct stat statbuff;
+		stat(__resource_path, &statbuff);
+		fprintf(responseFile, "Content-Length: %d\r\n", (int)statbuff.st_size);
+
+	    if(responseCode == OK){
+			// this is only an example, date from "__resource_path"
+			//fprintf(responseFile, "Last-Modified: Sat, 18 Oct 2014 18:40:44 BRT\r\n");
+			// print last modified date from "__resource_path"
+            struct tm tm = *gmtime(&statbuff.st_ctime);
+            strftime(time_dump, sizeof(time_dump), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+			fprintf(responseFile, "Last-Modified: %s\r\n", time_dump);
+		}
+
+	    if(responseCode == NOT_FOUND || responseCode == FORBIDDEN
+                                     || responseCode == BAD_REQUEST
+                                     || responseCode == METHOD_NOT_IMPLEMENTED){
+            // Finish header
+            fprintf(responseFile, "\r\n");
+		}
+	}
 
 }
 
@@ -117,14 +167,20 @@ void buildResponse(HttpRequest *requestList, char *request,
 */
 void httpServer_answerRequest(HttpRequest *requestList, FILE *request, FILE* response)
 {
-	int code;
-
+    int code = get_status();
+    if (code){
+        buildResponse(requestList, "GET", code, request, response);
+    }
 	if (!strcmp(requestList->type, "GET"))
 	{
 		code = testResource(serverRoot, requestList->resource);
         buildResponse(requestList, "GET", code, request, response);
 	}
-	//else if ("HEAD", "OPTIONS", etc)
+	if (!strcmp(requestList->type, "HEAD"))
+	{
+		code = testResource(serverRoot, requestList->resource);
+        buildResponse(requestList, "HEAD", code, request, response);
+    }
 }
 
 /* Function testResource()
@@ -223,7 +279,7 @@ int testResource(char *serverRoot, char *resource)
         free(welcome_path);
     }
 
-    strcpy(resourcePath, full_path);
+    strcpy(__resource_path, full_path);
     free(full_path);
     return OK;
 }
@@ -251,7 +307,7 @@ void httpServer_addToLog(FILE* log, FILE* request, FILE* response)
 	fprintf(log,"\n********************************************************************\r\n");
 }
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	HttpRequest *requestList;
 	FILE *request, *response, *log;
