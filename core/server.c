@@ -124,7 +124,7 @@ void _build_response(HttpRequest *requestList, char *request,
                                       || response_code == METHOD_NOT_IMPLEMENTED){
 
 		    struct stat metadata = get_resource_status();
-            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
+            fprintf(responseFile, "Content-Length: 0\r\n");
 
             // Finish header
             fprintf(responseFile, "\r\n");
@@ -155,7 +155,7 @@ void _build_response(HttpRequest *requestList, char *request,
                                       || response_code == METHOD_NOT_IMPLEMENTED){
 
             struct stat metadata = get_resource_status();
-            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
+            fprintf(responseFile, "Content-Length: 0\r\n");
 
             // Finish header
             fprintf(responseFile, "\r\n");
