@@ -1,6 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../utils/utils.h"
 #include "../utils/queue.h"
 
 typedef struct HttpRequest_ {

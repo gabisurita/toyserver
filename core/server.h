@@ -28,8 +28,6 @@ extern FILE* yyin;
 
 static char __server_root[256];
 
-static char __resource_path[256];
-
 /* Function server_callback()
 * Answera a given a request
 *

@@ -1,6 +1,8 @@
-
 #include "resource.h"
 #include "../server.h"
+
+struct stat __resource_status;
+char __resource_path[256];
 
 int test_resource(char *__server_root, char *resource)
 {
@@ -10,19 +12,17 @@ int test_resource(char *__server_root, char *resource)
     // 1. Concatena caminho
     sprintf(full_path, "%s%s", __server_root, resource);
 
-    struct stat path_status;
-
     // 2. Busca estado do caminho
-    if(stat(full_path, &path_status) < 0)
+    if(stat(full_path, &__resource_status) < 0)
         return NOT_FOUND;
 
     // 3. Checa permissao de leitura
-    if(!(path_status.st_mode & S_IRUSR)){
+    if(!(__resource_status.st_mode & S_IRUSR)){
         return FORBIDDEN;
     }
 
     // 4.1 Caminho é um arquivo
-    if(S_ISREG(path_status.st_mode)){
+    if(S_ISREG(__resource_status.st_mode)){
         int file_desc;
 
         // 4.1.1 Abre arquivo com open()
@@ -44,7 +44,7 @@ int test_resource(char *__server_root, char *resource)
     else{
 
         // 4.2.1 Verifica se diretorio permite varredura
-        if(!(path_status.st_mode & S_IXUSR)){
+        if(!(__resource_status.st_mode & S_IXUSR)){
             return FORBIDDEN;
         }
 
@@ -59,11 +59,11 @@ int test_resource(char *__server_root, char *resource)
         sprintf(index_path, "%sindex.html", full_path);
         sprintf(welcome_path, "%swelcome.html", full_path);
 
-        struct stat path_status;
+        struct stat __resource_status;
 
         // 4.2.2 Verifica se os arquivos existem
-        if(stat(index_path, &path_status) < 0){
-            if(stat(welcome_path, &path_status) < 0)
+        if(stat(index_path, &__resource_status) < 0){
+            if(stat(welcome_path, &__resource_status) < 0)
                 return NOT_FOUND;
         }
 
@@ -93,4 +93,12 @@ int test_resource(char *__server_root, char *resource)
     strcpy(__resource_path, full_path);
     free(full_path);
     return OK;
+}
+
+struct stat get_resource_status(){
+    return __resource_status;
+}
+
+char* get_resource_path(){
+    return __resource_path;
 }

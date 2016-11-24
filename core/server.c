@@ -43,18 +43,18 @@ void _set_server_root(char *root)
 *
 * Parameters:
 *	request: request type code
-*	responseCode: permission code to resource
+*	response_code: permission code to resource
 * 	requestFile: original request file
 * 	responseFile: build response into it
 */
 void _build_response(HttpRequest *requestList, char *request,
-                   int responseCode, FILE* requestFile, FILE* responseFile)
+                   int response_code, FILE* requestFile, FILE* responseFile)
 {
     // print Protocol version and response code
-    fprintf(responseFile, "HTTP/1.1 %d ", responseCode);
+    fprintf(responseFile, "HTTP/1.1 %d ", response_code);
 
     // Print response label
-    switch (responseCode)
+    switch (response_code)
 	{
 		case OK:
 			fprintf(responseFile, "OK\r\n");
@@ -97,13 +97,13 @@ void _build_response(HttpRequest *requestList, char *request,
         //XXX: We print only HTML
 		fprintf(responseFile, "Content-Type: text/html\r\n");
 
-		struct stat statbuff;
-		stat(__resource_path, &statbuff);
-		fprintf(responseFile, "Content-Length: %d\r\n", (int)statbuff.st_size);
+	    if(response_code == OK){
 
-	    if(responseCode == OK){
-			// print last modified date from "__resource_path"
-            struct tm tm = *gmtime(&statbuff.st_ctime);
+		    struct stat metadata = get_resource_status();
+            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
+
+            // print last modified date from "__resource_path"
+            struct tm tm = *gmtime(&metadata.st_ctime);
             strftime(time_dump, sizeof(time_dump), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 			fprintf(responseFile, "Last-Modified: %s\r\n", time_dump);
 
@@ -112,15 +112,20 @@ void _build_response(HttpRequest *requestList, char *request,
 
             // Output content
 		    int fid;
-		    fid = open(__resource_path, O_RDONLY);
-		    read(fid, __resource_path, statbuff.st_size);
-		    fwrite(__resource_path, sizeof(char), statbuff.st_size, responseFile);
+		    char* path = get_resource_path();
+            fid = open(path, O_RDONLY);
+		    read(fid, path, metadata.st_size);
+		    fwrite(path, sizeof(char), metadata.st_size, responseFile);
 		    close(fid);
 		}
 
-	    if(responseCode == NOT_FOUND || responseCode == FORBIDDEN
-                                     || responseCode == BAD_REQUEST
-                                     || responseCode == METHOD_NOT_IMPLEMENTED){
+	    if(response_code == NOT_FOUND || response_code == FORBIDDEN
+                                      || response_code == BAD_REQUEST
+                                      || response_code == METHOD_NOT_IMPLEMENTED){
+
+		    struct stat metadata = get_resource_status();
+            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
+
             // Finish header
             fprintf(responseFile, "\r\n");
 		}
@@ -132,22 +137,26 @@ void _build_response(HttpRequest *requestList, char *request,
         //XXX: We print only HTML
 		fprintf(responseFile, "Content-Type: text/html\r\n");
 
-		struct stat statbuff;
-		stat(__resource_path, &statbuff);
-		fprintf(responseFile, "Content-Length: %d\r\n", (int)statbuff.st_size);
+	    if(response_code == OK){
+		    struct stat metadata = get_resource_status();
+            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
 
-	    if(responseCode == OK){
-			// this is only an example, date from "__resource_path"
-			//fprintf(responseFile, "Last-Modified: Sat, 18 Oct 2014 18:40:44 BRT\r\n");
 			// print last modified date from "__resource_path"
-            struct tm tm = *gmtime(&statbuff.st_ctime);
+            struct tm tm = *gmtime(&metadata.st_ctime);
             strftime(time_dump, sizeof(time_dump), "%a, %d %b %Y %H:%M:%S %Z", &tm);
 			fprintf(responseFile, "Last-Modified: %s\r\n", time_dump);
+
+            // Finish header
+            fprintf(responseFile, "\r\n");
 		}
 
-	    if(responseCode == NOT_FOUND || responseCode == FORBIDDEN
-                                     || responseCode == BAD_REQUEST
-                                     || responseCode == METHOD_NOT_IMPLEMENTED){
+	    if(response_code == NOT_FOUND || response_code == FORBIDDEN
+                                      || response_code == BAD_REQUEST
+                                      || response_code == METHOD_NOT_IMPLEMENTED){
+
+            struct stat metadata = get_resource_status();
+            fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
+
             // Finish header
             fprintf(responseFile, "\r\n");
 		}
@@ -168,12 +177,25 @@ void __log(FILE* log, FILE* request, FILE* response)
 {
 	fseek(log, 0L, SEEK_END);
 
-	fprintf(log, "--- REQUEST ---\r\n\r\n");
-	fprintf(log,"colocar aqui o conteúdo do arquivo 'request'");
+    char buf[1024];
 
+    fprintf(log, "--- REQUEST ---\r\n\r\n");
+    buf[0] = '\0';
+    rewind(request);
+
+    while((buf[0] != '\r') && !feof(request)){
+        fgets(buf, 1024, request);
+	    fprintf(log, buf);
+    }
 
 	fprintf(log, "\r\n--- RESPONSE ---\r\n\r\n");
-	fprintf(log,"colocar aqui o conteúdo do arquivo 'response' (mas só o cabeçalho da mesma, sem o conteúdo do recursos solicitado, no caso de GET)");
+    buf[0] = '\0';
+    rewind(response);
+
+    while((buf[0] != '\r') && !feof(response)){
+        fgets(buf, 1024, response);
+	    fprintf(log, buf);
+    }
 
 	fprintf(log,"\n********************************************************************\r\n");
 }

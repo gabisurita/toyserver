@@ -43,6 +43,7 @@ build:
 	flex -o core/parser/http_parser.yy.c core/parser/http_parser.l
 	gcc -o $(BUILD_DIR)/server \
 		core/utils/queue.c\
+		core/utils/utils.c\
 	   	core/parser/http_parser.tab.c\
 	   	core/parser/http_parser.yy.c\
 	   	core/resource/resource.c\

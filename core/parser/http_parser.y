@@ -1,7 +1,4 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "http_parser.h"
 
 /* Tipo comando */
@@ -22,9 +19,6 @@ comando* comandoAtual;
 
 /* Contador de Linha */
 int __nlinhas = 1;
-
-/* Remove ocorrencias de caracter em string */
-void __clear_string(char* input, char rem);
 
 
 void __save_value();
@@ -61,7 +55,7 @@ atributo:
         comandoAtual = (comando*)malloc(sizeof(comando));
         char* texto = (char*)malloc(sizeof(char)*strlen(yylval.text));
         strcpy(texto, yylval.text);
-        __clear_string(texto, ':');
+        clear_string(texto, ':');
         comandoAtual->texto = texto;
         comandoAtual->filaParam = new_queue();
 
@@ -156,7 +150,6 @@ Queue* get_field(HttpRequest* request, char* field){
     return NULL;
 }
 
-
 void __save_value(){
     /* Verifica se o comando atual e valido */
     if(comandoAtual){
@@ -173,22 +166,3 @@ void __save_value(){
         __status = 400;
     }
 }
-
-
-/* Remove ocorrencias de caracter em string
-    Adaptado de http://stackoverflow.com/questions/4161822/ */
-void __clear_string(char* input, char rem){
-
-  char *src, *dest;
-  src = dest = input;
-
-  while(*src != '\0'){
-      if(*src != rem){
-          *dest = *src;
-          dest++;
-      }
-      src++;
-  }
-  *dest = '\0';
-}
-
