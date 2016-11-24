@@ -1,17 +1,13 @@
-VIRTUALENV = virtualenv
-SPHINX_BUILDDIR = docs/_build
-VENV := $(shell echo $${VIRTUAL_ENV-.venv})
-PYTHON = $(VENV)/bin/python
-DEV_STAMP = $(VENV)/.dev_env_installed.stamp
-DOC_STAMP = $(VENV)/.doc_env_installed.stamp
-INSTALL_STAMP = $(VENV)/.install.stamp
-TEMPDIR := $(shell mktemp -d)
 BUILD_DIR = _build
+SOURCE_DIR = .
+TESTS_DIR = tests
 
 .IGNORE: clean distclean maintainer-clean
 .PHONY: all install virtualenv tests
 
-OBJECTS = .venv .coverage
+SOURCES := $(shell find $(SOURCE_DIR) -name '*.c')
+TEST_REQUESTS := $(shell find $(TESTS_DIR) -name '*.http')
+
 
 help:
 	@echo "Please use 'make <target>' where <target> is one of"
@@ -30,13 +26,6 @@ help:
 
 
 
-all: install
-install: $(INSTALL_STAMP)
-$(INSTALL_STAMP): $(PYTHON) setup.py
-	$(VENV)/bin/pip install -U pip
-	$(VENV)/bin/pip install -U -r requirements.txt
-	touch $(INSTALL_STAMP)
-
 build:
 	mkdir -p $(BUILD_DIR)
 	bison -d -o core/parser/http_parser.tab.c core/parser/http_parser.y
@@ -49,66 +38,8 @@ build:
 	   	core/resource/resource.c\
 	   	core/server.c -lfl -ly
 
-test-once: build
-	./$(BUILD_DIR)/server meu-webspace req/req_1.txt resp/resp_1.txt registro.txt
-	cat resp/resp_1.txt
-	./$(BUILD_DIR)/server meu-webspace req/req_2.txt resp/resp_2.txt registro.txt
-	cat resp/resp_2.txt
+tests: build
+	for req in $(TEST_REQUESTS) ; do \
+		./$(BUILD_DIR)/server html $$req out.txt log.txt; \
+	done
 
-test-some: build
-	./servidor ../meu-webspace ../req/req_1.txt ../resp/resp_1.txt ../registro.txt
-	cat ../resp/resp_1.txt
-	./servidor ../meu-webspace ../req/req_2.txt ../resp/resp_2.txt ../registro.txt
-	cat ../resp/resp_2.txt
-	./servidor ../meu-webspace ../req/req_3.txt ../resp/resp_3.txt ../registro.txt
-	cat ../resp/resp_3.txt
-
-install-dev: $(INSTALL_STAMP) $(DEV_STAMP)
-$(DEV_STAMP): $(PYTHON) requirements-dev.txt
-	$(VENV)/bin/pip install -Ur requirements-dev.txt
-	touch $(DEV_STAMP)
-
-install-docs: $(DOC_STAMP)
-$(DOC_STAMP): $(PYTHON) docs/requirements.txt
-	$(VENV)/bin/pip install -Ur docs/requirements.txt
-	touch $(DOC_STAMP)
-
-virtualenv: $(PYTHON)
-$(PYTHON):
-	$(VIRTUALENV) $(VENV)
-
-build-requirements:
-	$(VIRTUALENV) $(TEMPDIR)
-	$(TEMPDIR)/bin/pip install -U pip
-	$(TEMPDIR)/bin/pip freeze > requirements.txt
-
-serve: install
-	@echo "Starting test server"
-	$(PYTHON) run.py
-
-tests-once: install-dev
-	$(VENV)/bin/py.test --cov-report term-missing --cov unicampi
-
-flake8: install-dev
-	$(VENV)/bin/flake8 unicampi tests
-
-tests:
-	$(VENV)/bin/tox
-
-clean:
-	find . -name '*.pyc' -delete
-	find . -name '*.swp' -delete
-	find . -name '*.swo' -delete
-	find . -name '__pycache__' -type d | xargs rm -fr
-	rm -fr docs/_build/
-
-distclean: clean
-	rm -fr *.egg *.egg-info/ dist/ build/
-
-maintainer-clean: distclean
-	rm -fr .venv/ .tox/
-
-docs: install-docs
-	$(VENV)/bin/sphinx-build -a -W -n -b html -d $(SPHINX_BUILDDIR)/doctrees docs $(SPHINX_BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html/index.html"
