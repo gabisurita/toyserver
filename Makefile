@@ -39,20 +39,20 @@ $(INSTALL_STAMP): $(PYTHON) setup.py
 
 build:
 	mkdir -p $(BUILD_DIR)
-	bison -d -o core/resource/ core/resource/http_parser.y
-	flex -o core/resource/ core/resource/http_parser.l
+	bison -d -o core/parser/http_parser.tab.c core/parser/http_parser.y
+	flex -o core/parser/http_parser.yy.c core/parser/http_parser.l
 	gcc -o $(BUILD_DIR)/server \
 		core/utils/queue.c\
-	   	core/resource/http_parser.tab.c\
-	   	core/resource/http_parser.yy.c\
-	   	core/servidor.c\
-	   	-lfl -ly
+	   	core/parser/http_parser.tab.c\
+	   	core/parser/http_parser.yy.c\
+	   	core/resource/resource.c\
+	   	core/server.c -lfl -ly
 
 test-once: build
-	./servidor ../meu-webspace ../req/req_1.txt ../resp/resp_1.txt ../registro.txt
-	cat ../resp/resp_1.txt
-	./servidor ../meu-webspace ../req/req_2.txt ../resp/resp_2.txt ../registro.txt
-	cat ../resp/resp_2.txt
+	./$(BUILD_DIR)/server meu-webspace req/req_1.txt resp/resp_1.txt registro.txt
+	cat resp/resp_1.txt
+	./$(BUILD_DIR)/server meu-webspace req/req_2.txt resp/resp_2.txt registro.txt
+	cat resp/resp_2.txt
 
 test-some: build
 	./servidor ../meu-webspace ../req/req_1.txt ../resp/resp_1.txt ../registro.txt

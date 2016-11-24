@@ -1,32 +1,30 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <time.h>
-#include <unistd.h>
+#include "server.h"
 
-#include "core/http_parser.h"
-#include "core/http.tab.h"
-
-extern FILE* yyin;
-
-static char serverRoot[256];
-
-#define PATH_OFFSET 20
-
-#define OK	200
-#define BAD_REQUEST 400
-#define FORBIDDEN 403
-#define NOT_FOUND 404
-#define SERVER_ERROR 500
-#define METHOD_NOT_IMPLEMENTED 501
-
-static char __resource_path[256];
-
+/* Function server_callback()
+* Answera a given a request
+*
+* Parameters:
+*	requestList: request to be answered
+* 	request: original request file
+* 	response: file to save response
+*/
+void callback(HttpRequest *requestList, FILE *request, FILE* response)
+{
+    int code = get_status();
+    if (code){
+        _build_response(requestList, "GET", code, request, response);
+    }
+	if (!strcmp(requestList->type, "GET"))
+	{
+		code = test_resource(__server_root, requestList->resource);
+        _build_response(requestList, "GET", code, request, response);
+	}
+	if (!strcmp(requestList->type, "HEAD"))
+	{
+		code = test_resource(__server_root, requestList->resource);
+        _build_response(requestList, "HEAD", code, request, response);
+    }
+}
 /* Function setServerRoot()
 * Sets the server's root directory
 *
@@ -34,13 +32,13 @@ static char __resource_path[256];
 *	char *root: path to root directory
 */
 
-void httpServer_setServerRoot(char *root)
+void _set_server_root(char *root)
 {
-	sprintf(serverRoot, "%s", root);
+	sprintf(__server_root, "%s", root);
 }
 
 
-/* Function buildResponse()
+/* Function _build_response()
 * Build response into a file
 *
 * Parameters:
@@ -49,7 +47,7 @@ void httpServer_setServerRoot(char *root)
 * 	requestFile: original request file
 * 	responseFile: build response into it
 */
-void buildResponse(HttpRequest *requestList, char *request,
+void _build_response(HttpRequest *requestList, char *request,
                    int responseCode, FILE* requestFile, FILE* responseFile)
 {
     // print Protocol version and response code
@@ -157,134 +155,7 @@ void buildResponse(HttpRequest *requestList, char *request,
 
 }
 
-/* Function server_answerRequest()
-* Answera a given a request
-*
-* Parameters:
-*	requestList: request to be answered
-* 	request: original request file
-* 	response: file to save response
-*/
-void httpServer_answerRequest(HttpRequest *requestList, FILE *request, FILE* response)
-{
-    int code = get_status();
-    if (code){
-        buildResponse(requestList, "GET", code, request, response);
-    }
-	if (!strcmp(requestList->type, "GET"))
-	{
-		code = testResource(serverRoot, requestList->resource);
-        buildResponse(requestList, "GET", code, request, response);
-	}
-	if (!strcmp(requestList->type, "HEAD"))
-	{
-		code = testResource(serverRoot, requestList->resource);
-        buildResponse(requestList, "HEAD", code, request, response);
-    }
-}
-
-/* Function testResource()
-* Verify if a resource on a given path exists and if it is accessable
-*
-* Parameters:
-*   ServerRoot: webspace root address
-*
-*/
-int testResource(char *serverRoot, char *resource)
-{
-
-    char* full_path = (char*)malloc((strlen(serverRoot)
-                                     +strlen(resource)+1)*sizeof(char));
-
-    // 1. Concatena caminho
-    sprintf(full_path, "%s%s", serverRoot, resource);
-
-    struct stat path_status;
-
-    // 2. Busca estado do caminho
-    if(stat(full_path, &path_status) < 0)
-        return NOT_FOUND;
-
-    // 3. Checa permissao de leitura
-    if(!(path_status.st_mode & S_IRUSR)){
-        return FORBIDDEN;
-    }
-
-    // 4.1 Caminho é um arquivo
-    if(S_ISREG(path_status.st_mode)){
-        int file_desc;
-
-        // 4.1.1 Abre arquivo com open()
-        if((file_desc = open(full_path, O_RDONLY)) == -1){
-            return SERVER_ERROR;
-        }
-
-        char buf[2048];
-        int n;
-
-        // 4.1.2 Escreve na stdout
-        while((n = read(file_desc,buf,sizeof(buf))) != 0){
-            fflush(stdout);
-            write(1,buf,n);
-        }
-
-    }
-    // 4.2 Caminho é um diretório
-    else{
-
-        // 4.2.1 Verifica se diretorio permite varredura
-        if(!(path_status.st_mode & S_IXUSR)){
-            return FORBIDDEN;
-        }
-
-        // Monta caminho do index.html
-        char* index_path = (char*)malloc((strlen(full_path)
-                                          +strlen("index.html")+1)*sizeof(char));
-
-        // Monta caminho do welcome.html
-        char* welcome_path = (char*)malloc((strlen(full_path)
-                                            +strlen("welcome.html")+1)*sizeof(char));
-
-        sprintf(index_path, "%sindex.html", full_path);
-        sprintf(welcome_path, "%swelcome.html", full_path);
-
-        struct stat path_status;
-
-        // 4.2.2 Verifica se os arquivos existem
-        if(stat(index_path, &path_status) < 0){
-            if(stat(welcome_path, &path_status) < 0)
-                return NOT_FOUND;
-        }
-
-        int file_desc;
-
-        // 4.2.3 Tenta ler index.html
-        if((file_desc = open(index_path, O_RDONLY)) == -1){
-
-            // Se nao existe index.html, verifica welcome.html
-            if((file_desc = open(welcome_path, O_RDONLY)) == -1)
-                return FORBIDDEN;
-        }
-
-        char buf[2048];
-        int n;
-
-        // 4.2.4 Imprime o conteudo
-        while((n = read(file_desc,buf,sizeof(buf))) != 0){
-            fflush(stdout);
-            write(1,buf,n);
-        }
-
-        free(index_path);
-        free(welcome_path);
-    }
-
-    strcpy(__resource_path, full_path);
-    free(full_path);
-    return OK;
-}
-
-/* Function addToLog()
+/* Function __log()
 * Adds request/response to file log
 *
 * Parameters:
@@ -293,7 +164,7 @@ int testResource(char *serverRoot, char *resource)
 *	response: response file
 */
 
-void httpServer_addToLog(FILE* log, FILE* request, FILE* response)
+void __log(FILE* log, FILE* request, FILE* response)
 {
 	fseek(log, 0L, SEEK_END);
 
@@ -313,7 +184,7 @@ int main(int argc, char **argv)
 	FILE *request, *response, *log;
 
 	// prepare webspace
-	httpServer_setServerRoot(argv[1]);
+	_set_server_root(argv[1]);
 
 	yyin = fopen(argv[2], "r");
 	request = yyin;
@@ -329,9 +200,9 @@ int main(int argc, char **argv)
 	{
         HttpRequest http_request = parse_request();
 		requestList = &http_request;
-        httpServer_answerRequest(requestList, request, response);
+        callback(requestList, request, response);
 	}
 	//else ERROR
 
-	httpServer_addToLog(log, request, response);
+	__log(log, request, response);
 }

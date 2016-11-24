@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "core/resource/http_parser.y" /* yacc.c:339  */
+#line 1 "core/parser/http_parser.y" /* yacc.c:339  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,7 +97,7 @@ char __buffer[1024];
 int __status = 0;
 
 
-#line 101 "core/resource/http_parser.yy.c" /* yacc.c:339  */
+#line 101 "core/parser/http_parser.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -116,9 +116,9 @@ int __status = 0;
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "http_parser.yy.h".  */
-#ifndef YY_YY_CORE_RESOURCE_HTTP_PARSER_YY_H_INCLUDED
-# define YY_YY_CORE_RESOURCE_HTTP_PARSER_YY_H_INCLUDED
+   by #include "http_parser.tab.h".  */
+#ifndef YY_YY_CORE_PARSER_HTTP_PARSER_TAB_H_INCLUDED
+# define YY_YY_CORE_PARSER_HTTP_PARSER_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -150,11 +150,11 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 36 "core/resource/http_parser.y" /* yacc.c:355  */
+#line 36 "core/parser/http_parser.y" /* yacc.c:355  */
 
   char text[1024];
 
-#line 158 "core/resource/http_parser.yy.c" /* yacc.c:355  */
+#line 158 "core/parser/http_parser.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -165,11 +165,11 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_CORE_RESOURCE_HTTP_PARSER_YY_H_INCLUDED  */
+#endif /* !YY_YY_CORE_PARSER_HTTP_PARSER_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 173 "core/resource/http_parser.yy.c" /* yacc.c:358  */
+#line 173 "core/parser/http_parser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1249,7 +1249,7 @@ yyreduce:
   switch (yyn)
     {
         case 5:
-#line 59 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 59 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         /* Cria novo comando */
         comandoAtual = (comando*)malloc(sizeof(comando));
@@ -1262,85 +1262,85 @@ yyreduce:
         /* Insere comando na fila */
         in_queue(&filaComandos, (char*)comandoAtual);
     }
-#line 1266 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1266 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 81 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 81 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         strcat(__buffer, yylval.text);
     }
-#line 1274 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1274 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 85 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 85 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         strcat(__buffer, yylval.text);
     }
-#line 1282 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1282 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 89 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 89 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         strcat(__buffer, yylval.text);
     }
-#line 1290 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1290 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 92 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 92 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         __save_value();
         __buffer[0] = '\0';
     }
-#line 1299 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1299 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 96 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 96 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         __save_value();
         __buffer[0] = '\0';
     }
-#line 1308 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1308 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 103 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 103 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         char* texto = yylval.text;
         req =  (char*)malloc(sizeof(char)*strlen(texto));
         strcpy(req, texto);
 
     }
-#line 1319 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1319 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 110 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 110 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         char* texto = yylval.text;
         path = (char*)malloc(sizeof(char)*strlen(texto));
         strcpy(path, texto);
 
     }
-#line 1330 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1330 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 117 "core/resource/http_parser.y" /* yacc.c:1646  */
+#line 117 "core/parser/http_parser.y" /* yacc.c:1646  */
     {
         char* texto = yylval.text;
         protocolo = (char*)malloc(sizeof(char)*strlen(texto));
         strcpy(protocolo, texto);
     }
-#line 1340 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1340 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1344 "core/resource/http_parser.yy.c" /* yacc.c:1646  */
+#line 1344 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1568,7 +1568,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 126 "core/resource/http_parser.y" /* yacc.c:1906  */
+#line 126 "core/parser/http_parser.y" /* yacc.c:1906  */
 
 
 void create_request(){

@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Connection: keep-alive
+Date: Thu, 24 Nov 2016 17:58:44 GMT
+Server: GabiToyServer/0.0.1
+Content-Type: text/html
+Content-Length: 16
+Last-Modified: Wed, 11 Mar 1970 19:41:08 GMT

@@ -1,6 +1,6 @@
-#line 2 "core/resource/http_parser.tab.h"
+#line 2 "core/parser/http_parser.yy.c"
 
-#line 4 "core/resource/http_parser.tab.h"
+#line 4 "core/parser/http_parser.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -486,10 +486,10 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "core/resource/http_parser.l"
-#line 2 "core/resource/http_parser.l"
+#line 1 "core/parser/http_parser.l"
+#line 2 "core/parser/http_parser.l"
   #include "http_parser.tab.h"
-#line 493 "core/resource/http_parser.tab.h"
+#line 493 "core/parser/http_parser.yy.c"
 
 #define INITIAL 0
 
@@ -671,10 +671,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 5 "core/resource/http_parser.l"
+#line 5 "core/parser/http_parser.l"
 
 
-#line 678 "core/resource/http_parser.tab.h"
+#line 678 "core/parser/http_parser.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -760,75 +760,75 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 7 "core/resource/http_parser.l"
+#line 7 "core/parser/http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 8 "core/resource/http_parser.l"
+#line 8 "core/parser/http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 9 "core/resource/http_parser.l"
+#line 9 "core/parser/http_parser.l"
 {return FIM;}
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 10 "core/resource/http_parser.l"
+#line 10 "core/parser/http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 11 "core/resource/http_parser.l"
+#line 11 "core/parser/http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 12 "core/resource/http_parser.l"
+#line 12 "core/parser/http_parser.l"
 {return NOVALINHA;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 13 "core/resource/http_parser.l"
+#line 13 "core/parser/http_parser.l"
 {return VIRGULA;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 14 "core/resource/http_parser.l"
+#line 14 "core/parser/http_parser.l"
 {strcpy(yylval.text, yytext); return ESPACO;}
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 15 "core/resource/http_parser.l"
+#line 15 "core/parser/http_parser.l"
 {strcpy(yylval.text, yytext); return LITERAL;}
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 16 "core/resource/http_parser.l"
+#line 16 "core/parser/http_parser.l"
 {strcpy(yylval.text, yytext); return LITERAL;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 17 "core/resource/http_parser.l"
+#line 17 "core/parser/http_parser.l"
 {strcpy(yylval.text, yytext); return CHAVE;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 18 "core/resource/http_parser.l"
+#line 18 "core/parser/http_parser.l"
 {strcpy(yylval.text, yytext); return PARAMETRO;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 19 "core/resource/http_parser.l"
+#line 19 "core/parser/http_parser.l"
 ECHO;
 	YY_BREAK
-#line 832 "core/resource/http_parser.tab.h"
+#line 832 "core/parser/http_parser.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1822,7 +1822,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 19 "core/resource/http_parser.l"
+#line 19 "core/parser/http_parser.l"
 
 
 
