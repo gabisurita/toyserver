@@ -40,6 +40,6 @@ _build
 *.swp
 
 #Flex/Bison
-.tab.c
-.tab.h
-.yy.c
+*.tab.c
+*.tab.h
+*.yy.c
