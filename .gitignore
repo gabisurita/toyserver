@@ -43,3 +43,7 @@ _build
 *.tab.c
 *.tab.h
 *.yy.c
+
+#Log files
+*.log
+*.txt
