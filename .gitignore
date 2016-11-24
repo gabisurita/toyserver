@@ -38,3 +38,8 @@ _build
 #VIm
 *.swo
 *.swp
+
+#Flex/Bison
+.tab.c
+.tab.h
+.yy.c
