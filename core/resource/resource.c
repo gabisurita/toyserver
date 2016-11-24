@@ -33,12 +33,7 @@ int test_resource(char *__server_root, char *resource)
         char buf[2048];
         int n;
 
-        // 4.1.2 Escreve na stdout
-        while((n = read(file_desc,buf,sizeof(buf))) != 0){
-            fflush(stdout);
-            write(1,buf,n);
-        }
-
+        strcpy(__resource_path, full_path);
     }
     // 4.2 Caminho é um diretório
     else{
@@ -59,8 +54,6 @@ int test_resource(char *__server_root, char *resource)
         sprintf(index_path, "%sindex.html", full_path);
         sprintf(welcome_path, "%swelcome.html", full_path);
 
-        struct stat __resource_status;
-
         // 4.2.2 Verifica se os arquivos existem
         if(stat(index_path, &__resource_status) < 0){
             if(stat(welcome_path, &__resource_status) < 0)
@@ -71,26 +64,19 @@ int test_resource(char *__server_root, char *resource)
 
         // 4.2.3 Tenta ler index.html
         if((file_desc = open(index_path, O_RDONLY)) == -1){
-
-            // Se nao existe index.html, verifica welcome.html
             if((file_desc = open(welcome_path, O_RDONLY)) == -1)
                 return FORBIDDEN;
+            else
+                strcpy(__resource_path, welcome_path);
         }
-
-        char buf[2048];
-        int n;
-
-        // 4.2.4 Imprime o conteudo
-        while((n = read(file_desc,buf,sizeof(buf))) != 0){
-            fflush(stdout);
-            write(1,buf,n);
+        else{
+            strcpy(__resource_path, index_path);
         }
 
         free(index_path);
         free(welcome_path);
     }
 
-    strcpy(__resource_path, full_path);
     free(full_path);
     return OK;
 }

@@ -92,7 +92,7 @@ void _build_response(HttpRequest *requestList, char *request,
     fprintf(responseFile, "Date: %s\r\n", time_dump);
 	fprintf(responseFile, "Server: GabiToyServer/0.0.1\r\n");
 
-	if (request=="GET")
+	if (!strcmp(request, "GET"))
 	{
         //XXX: We print only HTML
 		fprintf(responseFile, "Content-Type: text/html\r\n");
@@ -132,7 +132,7 @@ void _build_response(HttpRequest *requestList, char *request,
 	    //case NOT_FOUND,FORBIDDEN, etc
 	}
 
-	if (request=="HEAD")
+	if (!strcmp(request, "HEAD"))
 	{
         //XXX: We print only HTML
 		fprintf(responseFile, "Content-Type: text/html\r\n");
@@ -173,7 +173,7 @@ void _build_response(HttpRequest *requestList, char *request,
 *	response: response file
 */
 
-void __log(FILE* log, FILE* request, FILE* response)
+void __log(FILE* log, FILE* request, FILE* response, int verbose)
 {
 	fseek(log, 0L, SEEK_END);
 
@@ -188,6 +188,9 @@ void __log(FILE* log, FILE* request, FILE* response)
 	    fprintf(log, buf);
     }
 
+    if(verbose)
+        fprintf(stdout, "\r\n\r\n");
+
 	fprintf(log, "\r\n--- RESPONSE ---\r\n\r\n");
     buf[0] = '\0';
     rewind(response);
@@ -195,6 +198,10 @@ void __log(FILE* log, FILE* request, FILE* response)
     while((buf[0] != '\r') && !feof(response)){
         fgets(buf, 1024, response);
 	    fprintf(log, buf);
+
+        if(verbose)
+            fprintf(stdout, buf);
+
     }
 
 	fprintf(log,"\n********************************************************************\r\n");
@@ -226,5 +233,5 @@ int main(int argc, char **argv)
 	}
 	//else ERROR
 
-	__log(log, request, response);
+	__log(log, request, response, 1);
 }
