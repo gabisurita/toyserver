@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0.4"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -147,7 +147,7 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 36 "core/parser/http_parser.y" /* yacc.c:355  */
@@ -156,6 +156,8 @@ union YYSTYPE
 
 #line 158 "core/parser/http_parser.tab.c" /* yacc.c:355  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -169,7 +171,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 173 "core/parser/http_parser.tab.c" /* yacc.c:358  */
+#line 175 "core/parser/http_parser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1262,7 +1264,7 @@ yyreduce:
         /* Insere comando na fila */
         in_queue(&filaComandos, (char*)comandoAtual);
     }
-#line 1266 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1268 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
@@ -1270,7 +1272,7 @@ yyreduce:
     {
         strcat(__buffer, yylval.text);
     }
-#line 1274 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1276 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
@@ -1278,7 +1280,7 @@ yyreduce:
     {
         strcat(__buffer, yylval.text);
     }
-#line 1282 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1284 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
@@ -1286,7 +1288,7 @@ yyreduce:
     {
         strcat(__buffer, yylval.text);
     }
-#line 1290 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1292 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
@@ -1295,7 +1297,7 @@ yyreduce:
         __save_value();
         __buffer[0] = '\0';
     }
-#line 1299 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1301 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
@@ -1304,7 +1306,7 @@ yyreduce:
         __save_value();
         __buffer[0] = '\0';
     }
-#line 1308 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1310 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
@@ -1315,7 +1317,7 @@ yyreduce:
         strcpy(req, texto);
 
     }
-#line 1319 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1321 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
@@ -1326,7 +1328,7 @@ yyreduce:
         strcpy(path, texto);
 
     }
-#line 1330 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1332 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
@@ -1336,11 +1338,11 @@ yyreduce:
         protocolo = (char*)malloc(sizeof(char)*strlen(texto));
         strcpy(protocolo, texto);
     }
-#line 1340 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1342 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1344 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
+#line 1346 "core/parser/http_parser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

@@ -34,3 +34,7 @@
 
 # Build dir
 _build
+
+#VIm
+*.swo
+*.swp
