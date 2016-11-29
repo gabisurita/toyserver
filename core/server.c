@@ -209,29 +209,75 @@ void __log(FILE* log, FILE* request, FILE* response, int verbose)
 
 int main(int argc, char **argv)
 {
-	HttpRequest *requestList;
-	FILE *request, *response, *log;
+	int port = 8080;
 
 	// prepare webspace
 	_set_server_root(argv[1]);
 
-	yyin = fopen(argv[2], "r");
-	request = yyin;
+    // open socket
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	response = fopen(argv[3], "w+");
+    // load server info
+    struct sockaddr_in server_addr;
+    bzero((char*) &server_addr, sizeof(server_addr));
 
-	log = fopen(argv[4], "a");
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(port);
 
-	create_request();
+    // bind socket to server (assign port)
+    bind(sockfd, (struct sockaddr*)&server_addr,
+                 sizeof(server_addr));
 
-	// call parser
-	if(!yyparse())
-	{
-        HttpRequest http_request = parse_request();
-		requestList = &http_request;
-        callback(requestList, request, response);
-	}
-	//else ERROR
+    // make it a listening socket
+    listen(sockfd, 20);
 
-	__log(log, request, response, 1);
+    char req_buffer[1024];
+    char response_buffer[4096];
+
+    while(1){
+        struct sockaddr_in client_addr;
+        int addr_len = sizeof(client_addr);
+        int clientfd = accept(sockfd,
+                              (struct sockaddr*)&client_addr,
+                              &addr_len);
+
+        HttpRequest *requestList;
+	    FILE *request, *response, *log;
+
+        int n = read(clientfd, req_buffer, 1024);
+
+
+        // Read socket to mock file in memory
+        FILE* req_file = fmemopen(req_buffer,
+                                  strlen(req_buffer),
+                                  "r");
+	    yyin = req_file;
+        request = yyin;
+
+        FILE* response_file = fmemopen(response_buffer,
+                                       sizeof(response_buffer),
+                                       "w+");
+
+	    response = fopen(argv[3], "w+");
+	    log = fopen(argv[4], "a");
+	    create_request();
+
+        // call parser
+	    if(!yyparse())
+	    {
+            HttpRequest http_request = parse_request();
+		    requestList = &http_request;
+            callback(requestList, request, response_file);
+
+            fclose(response_file);
+            puts(response_buffer);
+            send(clientfd, response_buffer,
+                 strlen(response_buffer), 0);
+        }
+
+	    __log(log, request, response, 1);
+
+        close(clientfd);
+    }
 }
