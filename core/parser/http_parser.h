@@ -8,6 +8,9 @@
 #include "../utils/utils.h"
 #include "../utils/queue.h"
 
+int yylex();
+int yyerror(char *message);
+
 typedef struct HttpRequest_ {
 	char* type;
 	char* resource;
