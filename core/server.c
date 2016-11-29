@@ -1,5 +1,6 @@
 #include "server.h"
 
+
 /* Function server_callback()
 * Answera a given a request
 *
@@ -209,10 +210,10 @@ void __log(FILE* log, FILE* request, FILE* response, int verbose)
 
 int main(int argc, char **argv)
 {
-	int port = 8080;
+	int port = atoi(argv[1]);
 
 	// prepare webspace
-	_set_server_root(argv[1]);
+	_set_server_root(argv[2]);
 
     // open socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -232,43 +233,38 @@ int main(int argc, char **argv)
     // make it a listening socket
     listen(sockfd, 20);
 
-    char req_buffer[1024];
-    char response_buffer[4096];
-
     while(1){
+
+        char request_buffer[PACKET_SIZE];
+        char response_buffer[PACKET_SIZE];
+
         struct sockaddr_in client_addr;
         int addr_len = sizeof(client_addr);
         int clientfd = accept(sockfd,
                               (struct sockaddr*)&client_addr,
                               &addr_len);
 
-        HttpRequest *requestList;
-	    FILE *request, *response, *log;
 
-        int n = read(clientfd, req_buffer, 1024);
-
+        int n = read(clientfd, request_buffer, sizeof(request_buffer));
 
         // Read socket to mock file in memory
-        FILE* req_file = fmemopen(req_buffer,
-                                  strlen(req_buffer),
+        FILE* request_file = fmemopen(request_buffer,
+                                  strlen(request_buffer),
                                   "r");
-	    yyin = req_file;
-        request = yyin;
+	    yyin = request_file;
 
         FILE* response_file = fmemopen(response_buffer,
                                        sizeof(response_buffer),
-                                       "w+");
+                                       "w");
 
-	    response = fopen(argv[3], "w+");
-	    log = fopen(argv[4], "a");
 	    create_request();
 
         // call parser
 	    if(!yyparse())
 	    {
             HttpRequest http_request = parse_request();
-		    requestList = &http_request;
-            callback(requestList, request, response_file);
+		    HttpRequest* requestList = &http_request;
+            callback(requestList, request_file, response_file);
 
             fclose(response_file);
             puts(response_buffer);
@@ -276,7 +272,16 @@ int main(int argc, char **argv)
                  strlen(response_buffer), 0);
         }
 
-	    __log(log, request, response, 1);
+        response_file = fmemopen(response_buffer,
+                                 strlen(response_buffer),
+                                 "r");
+
+        FILE* log_file = fopen(argv[3], "a");
+	    __log(log_file, request_file, response_file, 1);
+
+        fclose(request_file);
+        fclose(response_file);
+        fclose(log_file);
 
         close(clientfd);
     }

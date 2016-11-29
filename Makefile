@@ -33,6 +33,9 @@ build:
 	   	core/resource/resource.c\
 	   	core/server.c -lfl -ly
 
+serve: build
+	./$(BUILD_DIR)/server 8000 html tests/log.txt;
+
 tests: build
 	touch tests/log.txt
 	rm tests/log.txt

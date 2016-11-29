@@ -29,6 +29,7 @@
 #define SERVER_ERROR 500
 #define METHOD_NOT_IMPLEMENTED 501
 
+#define PACKET_SIZE 65535
 
 extern FILE* yyin;
 
