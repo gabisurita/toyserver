@@ -256,7 +256,7 @@ void* client_handler(void* args){
     response_file = fmemopen(response_buffer,
                              strlen(response_buffer), "r");
 
-    __log(request_file, response_file, 1);
+    //__log(request_file, response_file, 1);
 
     fclose(request_file);
     fclose(response_file);
@@ -308,29 +308,9 @@ int main(int argc, char **argv)
     listen(sockfd, 20);
 
     pthread_t thread_ids[n_threads];
-    int busy_threads[n_threads];
-
-    // Busy thread handler
-    for(int i=0; i<n_threads; i++)
-        busy_threads[i] = 0;
 
     // Server loop
-    while(1){
-
-        int tno;
-
-        // Get first free thread
-        for(int tno=0; tno<=n_threads; tno++){
-            if(busy_threads[tno] == 0)
-                break;
-        }
-
-        // Server too busy, backoff
-        if(tno == n_threads)
-            continue;
-        // Mark thread as busy
-        else
-            busy_threads[tno] = 1;
+    for(int i=0; ; i++){
 
         // Create client connection
         struct sockaddr_in client_addr;
@@ -341,9 +321,6 @@ int main(int argc, char **argv)
 
         // Call client handler
         void* args = (void*)&clientfd;
-        pthread_create(&thread_ids[tno], NULL, client_handler, (void*)args);
-
-        // Mark thread as free
-        busy_threads[tno] = 0;
+        pthread_create(&thread_ids[i%n_threads], NULL, client_handler, (void*)args);
     }
 }
