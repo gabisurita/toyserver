@@ -13,18 +13,21 @@ char* __server_log;
 void callback(HttpRequest *requestList, FILE *request, FILE* response)
 {
     int code = get_status();
-    if (code){
-        _build_response(requestList, "GET", code, request, response);
+    if(code){
+        _build_response(requestList, "HEAD", code, request, response);
     }
-	if (!strcmp(requestList->type, "GET"))
-	{
+	if(!strcmp(requestList->type, "GET")){
 		code = test_resource(__server_root, requestList->resource);
         _build_response(requestList, "GET", code, request, response);
 	}
-	if (!strcmp(requestList->type, "HEAD"))
-	{
+	else if(!strcmp(requestList->type, "HEAD")){
 		code = test_resource(__server_root, requestList->resource);
         _build_response(requestList, "HEAD", code, request, response);
+    }
+	else{
+		code = test_resource(__server_root, requestList->resource);
+        _build_response(requestList, "HEAD", METHOD_NOT_IMPLEMENTED,
+                        request, response);
     }
 }
 
@@ -83,14 +86,15 @@ void _build_response(HttpRequest *requestList, char *request,
     fprintf(responseFile, "Date: %s\r\n", time_dump);
 	fprintf(responseFile, "Server: GabiToyServer/0.0.1\r\n");
 
-	if (!strcmp(request, "GET"))
+	if(!strcmp(request, "GET"))
 	{
-        //XXX: We print only HTML
-		fprintf(responseFile, "Content-Type: text/html\r\n");
-
 	    if(response_code == OK){
 
-		    struct stat metadata = get_resource_status();
+            //XXX: We print only text
+            char* ext = strrchr(get_resource_path(), '.');
+		    fprintf(responseFile, "Content-Type: text/%s\r\n", ext+1);
+
+            struct stat metadata = get_resource_status();
             fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
 
             // print last modified date from "__resource_path"
@@ -120,16 +124,17 @@ void _build_response(HttpRequest *requestList, char *request,
             // Finish header
             fprintf(responseFile, "\r\n");
 		}
-	    //case NOT_FOUND,FORBIDDEN, etc
 	}
 
-	if (!strcmp(request, "HEAD"))
+	if(!strcmp(request, "HEAD"))
 	{
-        //XXX: We print only HTML
-		fprintf(responseFile, "Content-Type: text/html\r\n");
-
 	    if(response_code == OK){
-		    struct stat metadata = get_resource_status();
+
+            //XXX: We print only text
+            char* ext = strrchr(get_resource_path(), '.');
+		    fprintf(responseFile, "Content-Type: text/%s\r\n", ext+1);
+
+            struct stat metadata = get_resource_status();
             fprintf(responseFile, "Content-Length: %d\r\n", (int)metadata.st_size);
 
 			// print last modified date from "__resource_path"
@@ -152,7 +157,6 @@ void _build_response(HttpRequest *requestList, char *request,
             fprintf(responseFile, "\r\n");
 		}
 	}
-
 }
 
 /* Function __log()
@@ -164,8 +168,7 @@ void _build_response(HttpRequest *requestList, char *request,
 *	response: response file
 */
 
-void __log(FILE* request, FILE* response, int verbose)
-{
+void __log(FILE* request, FILE* response, int verbose){
 
     FILE* log = fopen(__server_log, "a");
 
@@ -174,22 +177,29 @@ void __log(FILE* request, FILE* response, int verbose)
     char buf[PACKET_SIZE];
 
     fprintf(log, "--- REQUEST ---\r\n\r\n");
+    if(verbose)
+        fprintf(stdout, "--- REQUEST ---\r\n\r\n");
+
     buf[0] = '\0';
     rewind(request);
 
     while((buf[0] != '\r') && !feof(request)){
         fgets(buf, sizeof(buf), request);
 	    fprintf(log, buf);
+
+        if(verbose)
+            fprintf(stdout, buf);
+
     }
 
-    if(verbose)
-        fprintf(stdout, "\r\n\r\n");
-
 	fprintf(log, "\r\n--- RESPONSE ---\r\n\r\n");
+    if(verbose)
+	    fprintf(stdout, "\r\n--- RESPONSE ---\r\n\r\n");
+
     buf[0] = '\0';
     rewind(response);
 
-    while((buf[0] != '\r') && !feof(response)){
+    while((buf[0] != '\r') && (buf[0] != '\n') && !feof(response)){
         fgets(buf, sizeof(buf), response);
 	    fprintf(log, buf);
 
@@ -239,7 +249,6 @@ void* client_handler(void* args){
 
         // Send response
         fclose(response_file);
-        puts(response_buffer);
         send(clientfd, response_buffer,
              strlen(response_buffer), 0);
     }
@@ -270,9 +279,13 @@ int main(int argc, char **argv)
     // thread number
     int n_threads = atoi(argv[4]);
 
-
     // open socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if(sockfd < 0){
+        perror("Socket error");
+        exit(1);
+    }
 
     // load server info
     struct sockaddr_in server_addr;
@@ -283,8 +296,13 @@ int main(int argc, char **argv)
     server_addr.sin_port = htons(port);
 
     // bind socket to server (assign port)
-    bind(sockfd, (struct sockaddr*)&server_addr,
-                 sizeof(server_addr));
+    int conn = bind(sockfd, (struct sockaddr*)&server_addr,
+                    sizeof(server_addr));
+
+    if(conn < 0){
+        perror("Bind error");
+        exit(1);
+    }
 
     // make it a listening socket
     listen(sockfd, 20);

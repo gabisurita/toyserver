@@ -1,4 +1,5 @@
 %{
+#include "../server.h"
 #include "http_parser.h"
 
 /* Tipo comando */
@@ -22,7 +23,7 @@ int __nlinhas = 1;
 
 
 void __save_value();
-char __buffer[1024];
+char __buffer[PACKET_SIZE];
 int __status = 0;
 
 %}

@@ -17,10 +17,8 @@ listas ligadas circulares.
 void* smalloc(int size){
 
   void* mem = malloc(size);
-  if(mem == NULL){
-    printf("Malloc Error\n");
+  if(mem == NULL)
     exit(1);
-  }
 
   return mem;
 }

@@ -30,9 +30,6 @@ int test_resource(char *__server_root, char *resource)
             return SERVER_ERROR;
         }
 
-        char buf[2048];
-        int n;
-
         strcpy(__resource_path, full_path);
     }
     // 4.2 Caminho é um diretório
