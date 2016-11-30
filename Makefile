@@ -2,7 +2,6 @@ BUILD_DIR = _build
 SOURCE_DIR = .
 TESTS_DIR = tests
 
-.IGNORE: tests test-once
 .PHONY: build
 
 SOURCES := $(shell find $(SOURCE_DIR) -name '*.c')
@@ -19,8 +18,6 @@ help:
 	@echo "| tests-once  |                  run sample test                  |"
 	@echo "|_____________|___________________________________________________|"
 
-
-
 build:
 	mkdir -p $(BUILD_DIR)
 	bison -d -o core/parser/http_parser.tab.c core/parser/http_parser.y
@@ -34,14 +31,22 @@ build:
 	   	core/server.c -lfl -ly -lpthread
 
 serve: build
-	./$(BUILD_DIR)/server 8000 html tests/log.txt 4
+	touch log.txt
+	./$(BUILD_DIR)/server 8000 ./html ./log.txt 8
 
-tests: build
+tests-env: build
+	virtualenv venv
+	venv/bin/pip install -r test-requirements.txt
+	mkdir -p tests/test_webspace
 	touch tests/log.txt
 	rm tests/log.txt
-	for req in $(TEST_REQUESTS) ; do \
-		./$(BUILD_DIR)/server tests/test-html $$req $$req.out.txt tests/log.txt; \
-	done
+	./$(BUILD_DIR)/server 8000 tests/test_webspace tests/log.txt 8
+
+tests-all:
+	py.test -v tests
+
+tests-visual:
+	firefox http://localhost:8000
 
 tests-once: build
 	./$(BUILD_DIR)/server tests/test-html tests/requests/get/index.http tests/out.txt tests/log.txt;

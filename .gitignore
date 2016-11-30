@@ -35,15 +35,21 @@
 # Build dir
 _build
 
-#VIm
+# VIm
 *.swo
 *.swp
 
-#Flex/Bison
+# Flex/Bison
 *.tab.c
 *.tab.h
 *.yy.c
 
-#Log files
+# Log files
 *.log
 *.txt
+
+# Python Tests
+venv
+.cache
+*__pycache__
+*.pyc
