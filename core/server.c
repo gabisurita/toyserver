@@ -1,5 +1,6 @@
 #include "server.h"
 
+char* __server_log;
 
 /* Function server_callback()
 * Answera a given a request
@@ -25,17 +26,6 @@ void callback(HttpRequest *requestList, FILE *request, FILE* response)
 		code = test_resource(__server_root, requestList->resource);
         _build_response(requestList, "HEAD", code, request, response);
     }
-}
-/* Function setServerRoot()
-* Sets the server's root directory
-*
-* Parameters:
-*	char *root: path to root directory
-*/
-
-void _set_server_root(char *root)
-{
-	sprintf(__server_root, "%s", root);
 }
 
 
@@ -174,18 +164,21 @@ void _build_response(HttpRequest *requestList, char *request,
 *	response: response file
 */
 
-void __log(FILE* log, FILE* request, FILE* response, int verbose)
+void __log(FILE* request, FILE* response, int verbose)
 {
-	fseek(log, 0L, SEEK_END);
 
-    char buf[1024];
+    FILE* log = fopen(__server_log, "a");
+
+    fseek(log, 0L, SEEK_END);
+
+    char buf[PACKET_SIZE];
 
     fprintf(log, "--- REQUEST ---\r\n\r\n");
     buf[0] = '\0';
     rewind(request);
 
     while((buf[0] != '\r') && !feof(request)){
-        fgets(buf, 1024, request);
+        fgets(buf, sizeof(buf), request);
 	    fprintf(log, buf);
     }
 
@@ -197,7 +190,7 @@ void __log(FILE* log, FILE* request, FILE* response, int verbose)
     rewind(response);
 
     while((buf[0] != '\r') && !feof(response)){
-        fgets(buf, 1024, response);
+        fgets(buf, sizeof(buf), response);
 	    fprintf(log, buf);
 
         if(verbose)
@@ -206,14 +199,77 @@ void __log(FILE* log, FILE* request, FILE* response, int verbose)
     }
 
 	fprintf(log,"\n********************************************************************\r\n");
+
+    fclose(log);
 }
+
+
+void* client_handler(void* args){
+
+    int clientfd = *((int*)args);
+
+    char request_buffer[PACKET_SIZE];
+    char response_buffer[PACKET_SIZE];
+
+    int n = read(clientfd, request_buffer, sizeof(request_buffer));
+
+    // Read socket to mock file in memory
+    FILE* request_file = fmemopen(request_buffer,
+                              strlen(request_buffer), "r");
+
+    // Set request as parser input
+    yyin = request_file;
+
+    // Create mock response file
+    FILE* response_file = fmemopen(response_buffer,
+                                   sizeof(response_buffer), "w");
+
+    // Alocate request
+    create_request();
+
+    // call parser
+    if(!yyparse())
+    {
+        // Parse request
+        HttpRequest http_request = parse_request();
+	    HttpRequest* requestList = &http_request;
+
+        // Build response
+        callback(requestList, request_file, response_file);
+
+        // Send response
+        fclose(response_file);
+        puts(response_buffer);
+        send(clientfd, response_buffer,
+             strlen(response_buffer), 0);
+    }
+
+    response_file = fmemopen(response_buffer,
+                             strlen(response_buffer), "r");
+
+    __log(request_file, response_file, 1);
+
+    fclose(request_file);
+    fclose(response_file);
+
+    close(clientfd);
+}
+
 
 int main(int argc, char **argv)
 {
-	int port = atoi(argv[1]);
+    // read port
+    int port = atoi(argv[1]);
 
 	// prepare webspace
-	_set_server_root(argv[2]);
+    __server_root = argv[2];
+
+    // log file
+    __server_log = argv[3];
+
+    // thread number
+    int n_threads = atoi(argv[4]);
+
 
     // open socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -233,56 +289,43 @@ int main(int argc, char **argv)
     // make it a listening socket
     listen(sockfd, 20);
 
+    pthread_t thread_ids[n_threads];
+    int busy_threads[n_threads];
+
+    // Busy thread handler
+    for(int i=0; i<n_threads; i++)
+        busy_threads[i] = 0;
+
+    // Server loop
     while(1){
 
-        char request_buffer[PACKET_SIZE];
-        char response_buffer[PACKET_SIZE];
+        int tno;
 
+        // Get first free thread
+        for(int tno=0; tno<=n_threads; tno++){
+            if(busy_threads[tno] == 0)
+                break;
+        }
+
+        // Server too busy, backoff
+        if(tno == n_threads)
+            continue;
+        // Mark thread as busy
+        else
+            busy_threads[tno] = 1;
+
+        // Create client connection
         struct sockaddr_in client_addr;
         int addr_len = sizeof(client_addr);
         int clientfd = accept(sockfd,
                               (struct sockaddr*)&client_addr,
                               &addr_len);
 
+        // Call client handler
+        void* args = (void*)&clientfd;
+        pthread_create(&thread_ids[tno], NULL, client_handler, (void*)args);
 
-        int n = read(clientfd, request_buffer, sizeof(request_buffer));
-
-        // Read socket to mock file in memory
-        FILE* request_file = fmemopen(request_buffer,
-                                  strlen(request_buffer),
-                                  "r");
-	    yyin = request_file;
-
-        FILE* response_file = fmemopen(response_buffer,
-                                       sizeof(response_buffer),
-                                       "w");
-
-	    create_request();
-
-        // call parser
-	    if(!yyparse())
-	    {
-            HttpRequest http_request = parse_request();
-		    HttpRequest* requestList = &http_request;
-            callback(requestList, request_file, response_file);
-
-            fclose(response_file);
-            puts(response_buffer);
-            send(clientfd, response_buffer,
-                 strlen(response_buffer), 0);
-        }
-
-        response_file = fmemopen(response_buffer,
-                                 strlen(response_buffer),
-                                 "r");
-
-        FILE* log_file = fopen(argv[3], "a");
-	    __log(log_file, request_file, response_file, 1);
-
-        fclose(request_file);
-        fclose(response_file);
-        fclose(log_file);
-
-        close(clientfd);
+        // Mark thread as free
+        busy_threads[tno] = 0;
     }
 }

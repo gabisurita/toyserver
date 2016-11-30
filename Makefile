@@ -31,10 +31,10 @@ build:
 	   	core/parser/http_parser.tab.c\
 	   	core/parser/http_parser.yy.c\
 	   	core/resource/resource.c\
-	   	core/server.c -lfl -ly
+	   	core/server.c -lfl -ly -lpthread
 
 serve: build
-	./$(BUILD_DIR)/server 8000 html tests/log.txt;
+	./$(BUILD_DIR)/server 8000 html tests/log.txt 4
 
 tests: build
 	touch tests/log.txt

@@ -140,14 +140,22 @@ int get_status(){
 Queue* get_field(HttpRequest* request, char* field){
 
     Node* head = request->attr_list->start;
+    Node* iter = NULL;
 
-    for(Node* iter = head; iter->next != head; iter = iter->next){
+    for(iter = head; iter->next != head; iter = iter->next){
         comando* cmd = (comando*)iter->val;
 
         if(!strcmp(cmd->texto, field))
             return cmd->filaParam;
     }
-    return NULL;
+
+    // Check last node outside loop
+    comando* cmd = (comando*)iter->val;
+
+    if(!strcmp(cmd->texto, field))
+        return cmd->filaParam;
+    else
+        return NULL;
 }
 
 void __save_value(){
