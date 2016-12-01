@@ -1,6 +1,6 @@
 #include "server.h"
 
-char* __server_log;
+static char* __server_log;
 
 /* Function server_callback()
 * Answera a given a request
@@ -172,8 +172,6 @@ void __log(FILE* request, FILE* response, int verbose){
 
     FILE* log = fopen(__server_log, "a");
 
-    fseek(log, 0L, SEEK_END);
-
     char buf[PACKET_SIZE];
 
     fprintf(log, "--- REQUEST ---\r\n\r\n");
@@ -256,7 +254,7 @@ void* client_handler(void* args){
     response_file = fmemopen(response_buffer,
                              strlen(response_buffer), "r");
 
-    //__log(request_file, response_file, 1);
+    __log(request_file, response_file, 1);
 
     fclose(request_file);
     fclose(response_file);
