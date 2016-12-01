@@ -2,7 +2,7 @@ BUILD_DIR = _build
 SOURCE_DIR = .
 TESTS_DIR = tests
 
-.PHONY: build
+.PHONY: build tests
 
 SOURCES := $(shell find $(SOURCE_DIR) -name '*.c')
 TEST_REQUESTS := $(shell find $(TESTS_DIR) -name '*.http')
@@ -37,16 +37,20 @@ serve: build
 tests-env: build
 	virtualenv venv
 	venv/bin/pip install -r test-requirements.txt
-	mkdir -p tests/test_webspace
-	touch tests/log.txt
-	rm tests/log.txt
-	./$(BUILD_DIR)/server 8000 tests/test_webspace tests/log.txt 8
+	mkdir -p $(TESTS_DIR)/test_webspace
+	touch $(TESTS_DIR)/log.txt
+	rm $(TESTS_DIR)/log.txt
+	./$(BUILD_DIR)/server 8000 tests/test_webspace tests/log.txt 8 &
 
-tests-all:
-	py.test -v tests
+tests-run:
+	venv/bin/pytest -v tests ; pkill "server"
+
+tests: tests-env tests-run
 
 tests-visual:
 	firefox http://localhost:8000
 
-tests-once: build
-	./$(BUILD_DIR)/server tests/test-html tests/requests/get/index.http tests/out.txt tests/log.txt;
+clean:
+	rm -r venv
+	rm -r _build
+	rm */__pycache__
